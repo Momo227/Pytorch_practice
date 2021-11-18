@@ -31,11 +31,12 @@ class DocCls(nn.Module):
         self.cls=nn.Linear(768,9)
     def forward(self,x):
         bout = self.bert(x)
-        # �o�b�`�T�C�Y�̎��o��
+        # バッチサイズの取り出し
         bs = len(bout[0])
-        # �o�b�`��i�Ԗڂ̕��ɑ΂���[CLS]�̖��ߍ��ݕ\��
+        # バッチ内i番目の文に対する[CLS]の埋め込み表現
+        # BERTは双方向→[CLS]：多層エンコード手順を通じてすべてのトークンの代表的な情報を含む。
         h0 = [ bout[0][i][0] for i in range(bs)]
-        # stack:�A��
+        # stack:連結
         h0 = torch.stack(h0,dim=0)
         return self.cls(h0)
 
@@ -48,7 +49,7 @@ criterion = nn.CrossEntropyLoss()
 # Learn
 
 net.train()
-# 30�G�|�b�N�܂Ŋw�K
+# 30エポックまで学習
 for ep in range(30):
     lossK = 0.0
     for i in range(len(xtrain)):
@@ -57,7 +58,7 @@ for ep in range(30):
         out = net(x)
         loss = criterion(out,y)
         lossK += loss.item()
-        # 50�f�[�^���Ƃɑ����l�̍��v��]
+        # 50データごとに損失値の合計を評
         if (i % 50 == 0):
             print(ep, i, lossK)
             lossK = 0.0
